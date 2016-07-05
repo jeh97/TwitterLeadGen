@@ -348,15 +348,15 @@ public class DBManager {
 		// return whether it exists or not
 		return exists;
 	}
-	
+
 	/**
 	 * Determines whether a given Tweet has already populated the all_tweets table
-	 * @param status Status to check
+	 * @param id Id of Tweet to check
 	 * @return true if the Status is already in the table, false otherwise
 	 */
-	public boolean hasTweet(Status status) {
+	public boolean hasTweet(Long id) {
 		// Create sql statement
-		String sql = String.format("SELECT EXISTS(SELECT 1 FROM all_tweets WHERE id = %d);",status.getId());
+		String sql = String.format("SELECT EXISTS(SELECT 1 FROM all_tweets WHERE id = %d);",id);
 		
 		// Declare connections, statement, and result set
 		Connection conn = null;
@@ -387,6 +387,54 @@ public class DBManager {
 		
 		// return whether it exists or not
 		return exists;
+	}
+	
+	/**
+	 * Determines whether a given Tweet has already populated the all_tweets table
+	 * @param status Status to check
+	 * @return true if the Status is already in the table, false otherwise
+	 */
+	public boolean hasTweet(Status status) {
+		return hasTweet(status.getId());
+	}
+	
+	/**
+	 * Returns the Text of a tweet with the given ID
+	 * @param id
+	 * @return
+	 */
+	public String getTweetText(Long id) {
+		// Check if has word, return null if not.
+		if (!hasTweet(id)) return null;
+		// Create sql statement
+		String sql = String.format("SELECT text FROM all_tweets WHERE id = '%d'",id);
+		
+		// Declare connections, statement, and result set
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet set = null;
+			
+		// Create WordObject
+		String result = null;
+		try {
+			//Connect,create statement
+			conn = DriverManager.getConnection(DB_URL,USER,PASS);
+			stmt = conn.createStatement();
+			
+			set = stmt.executeQuery(sql);
+				
+			set.next();
+			
+			result = set.getString(1);
+				
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try { stmt.close();} catch (SQLException e) { e.printStackTrace();}
+			try { conn.close();} catch (SQLException e) { e.printStackTrace();}
+			try {  set.close();} catch (SQLException e) { e.printStackTrace();}	
+		}
+		return result;
 	}
 	
 	/**
@@ -436,7 +484,7 @@ public class DBManager {
 			set.next();
 			
 			hasProb = set.getObject(1) == null;
-			
+		
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -509,13 +557,13 @@ public class DBManager {
 	}
 	
 	/**
-	 * Method to check if there exists and email with the given ID.
-	 * @param id ID to check for
-	 * @return True if the ID is already assigned to an email, False otherwise
+	 * Method to check if there exists and email with the given index.
+	 * @param index index to check for
+	 * @return True if the index is already assigned to an email, False otherwise
 	 */
-	public boolean emailIDExists(int id) {
+	public boolean emailIndexExists(int index) {
 		//create sql statement
-		String sql = String.format("SELECT EXISTS(SELECT 1 FROM sent_emails WHERE id = '%d');",id);
+		String sql = String.format("SELECT EXISTS(SELECT 1 FROM sent_emails WHERE index = '%d');",index);
 		
 		//declare connections
 		Connection conn = null;
@@ -550,12 +598,12 @@ public class DBManager {
 	 * @param id ID of the email that was responded to
 	 * @return True if exists in table and hasResponse is now true, false otherwise
 	 */
-	public boolean emailResponseRecorded(int id) {
+	public boolean emailResponseRecorded(int index) {
 		//check if id exists, if not, return false
-		if (emailIDExists(id)) return false;
+		if (emailIndexExists(index)) return false;
 		
 		//create statement
-		String sql = String.format("UPDATE send_emails SET hasResponse = 1 WHERE id = %d", id);
+		String sql = String.format("UPDATE send_emails SET hasResponse = 1 WHERE indexValue = %d", index);
 		
 		//execute statement
 		executeSql(sql);
@@ -565,55 +613,16 @@ public class DBManager {
 	}
 	
 	/**
-	 * Method to get the Index value of the email with the given ID.
-	 * @param id ID of the email
-	 * @return the Index of the email, -1 if email does not exist in table
-	 */
-	public int getEmailIndex(int id) {
-		//check if id exits, if not, return -1
-		if (!emailIDExists(id)) return -1;
-		
-		//create sql statement
-		String sql = String.format("SELECT indexValue FROM sent_emails WHERE id = %d",id);
-		
-		int index = -1;
-		
-		//declare connections
-		Connection conn = null;
-		Statement stmt = null;
-		ResultSet set = null;
-		
-		try {
-			conn = DriverManager.getConnection(DB_URL,USER,PASS);
-			stmt = conn.createStatement();
-			
-			set = stmt.executeQuery(sql);
-			
-			set.next();
-			
-			index = set.getInt(1);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			try { stmt.close();} catch (SQLException e) { e.printStackTrace();}
-			try { conn.close();} catch (SQLException e) { e.printStackTrace();}
-			try {  set.close();} catch (SQLException e) { e.printStackTrace();}	
-		}
-		return index;
-	}
-	
-	/**
 	 * Method to get the send date of the email with the given ID.
 	 * @param id ID of the email
 	 * @return Date associated with the email, null none found or email does not exist.
 	 */
-	public Date getEmailDate(int id) {
+	public Date getEmailDate(int index) {
 		//check if email exists, if not return null
-		if (!emailIDExists(id)) return null;
+		if (!emailIndexExists(index)) return null;
 		
 		//create sql statement
-		String sql = String.format("SELECT EXISTS(SELECT * FROM sent_emails WHERE id = '%d');",id);
+		String sql = String.format("SELECT EXISTS(SELECT * FROM sent_emails WHERE indexValue = '%d');",index);
 		
 		Date date = null;
 		
@@ -684,10 +693,7 @@ public class DBManager {
 	 * @param date The date the email was sent
 	 * @return index, if id is taken, returns -1
 	 */
-	public int addSentEmail(int id, Date date) {
-		//check if id exists, if so, return -1
-		if (emailIDExists(id)) return -1;
-		
+	public int addSentEmail(Date date, int numberOfTweets) {
 		//find index
 		int index = getNextIndex();
 		
@@ -698,8 +704,8 @@ public class DBManager {
 				c.get(Calendar.HOUR_OF_DAY),c.get(Calendar.MINUTE),c.get(Calendar.SECOND));
 		
 		// create statement
-		String sql = "INSERT INTO sent_emails (indexValue, id, date, hasResponse) "
-				+ String.format("VALUES ( %d, %d, '%s', 0)", index, id, dateString);
+		String sql = "INSERT INTO sent_emails (indexValue, date, hasResponse, numberOfTweets) "
+				+ String.format("VALUES ( %d, '%s', 0, %d)", index, dateString, numberOfTweets);
 		
 		//execute statement
 		executeSql(sql);
@@ -709,15 +715,37 @@ public class DBManager {
 	}
 	
 	/**
-	 * Method to get a new and unique ID for an email.
-	 * @return A unique email ID
+	 * Gets the number of tweets expected from a given email
+	 * @param index Index of the email
+	 * @return The numberOfTweets for that email, -1 if unsuccessful
 	 */
-	public int getNewEmailID() {
-		Random random = new Random();
-		int id = random.nextInt()%65536;
-		while (emailIDExists(id) || id < 1) {
-			id = random.nextInt()%65536;
+	public int getEmailNumberOfTweets(int index) {
+		//create sql statement
+		String sql = "SELECT numberOfTweets FROM sent_emails WHERE "
+				+ String.format("indexValue = %d;",index);
+		
+		//declare connections
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet set = null;
+		int numberOfTweets = -1;
+		try {
+			conn = DriverManager.getConnection(DB_URL,USER,PASS);
+			stmt = conn.createStatement();
+			
+			set = stmt.executeQuery(sql);
+			
+			set.next();
+			
+			numberOfTweets = set.getInt(1);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try { stmt.close();} catch (SQLException e) { e.printStackTrace();}
+			try { conn.close();} catch (SQLException e) { e.printStackTrace();}
+			try {  set.close();} catch (SQLException e) { e.printStackTrace();}	
 		}
-		return id;
+		return numberOfTweets;
 	}
 }

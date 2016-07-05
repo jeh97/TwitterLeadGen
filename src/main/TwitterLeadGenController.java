@@ -2,6 +2,7 @@ package main;
 
 import twitter4j.Status;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.TreeMap;
 
 public class TwitterLeadGenController {
@@ -38,7 +39,36 @@ public class TwitterLeadGenController {
 	
 	public static void main(String [] args) {
 		TwitterLeadGenController controller = TwitterLeadGenController.getInstance();
-		controller.run();
+		
+		Calendar calendar = null;
+		int lastDay = -1;
+		int currDay = -1;
+		
+		while (true) {
+			calendar = Calendar.getInstance();
+			currDay = calendar.get(Calendar.DAY_OF_YEAR);
+			
+			printDate(calendar);
+			
+			if (currDay != lastDay) {
+				System.out.printf("TwitterLeadGen has not been run today.\n");
+				lastDay = currDay;
+				try {
+					System.out.printf("Running TwitterLeadGenController\n");
+					controller.run();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			} else {
+				System.out.printf("TwitterLeadGen has already been run today.\n");
+			}
+			System.out.println("Checking again in 12 hours\n\n");
+			try {
+				Thread.sleep(43200000);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	/**
@@ -47,9 +77,13 @@ public class TwitterLeadGenController {
 	 * digest
 	 */
 	public void run() {
-		//checkMail();
+		System.out.println("Checking mail...");
+		checkMail();
+		System.out.println("Querying Twitter...");
 		ArrayList<Status> statuses = fetchStatuses();
+		System.out.println("Calculating relevance probabilities...");
 		ArrayList<StatusObject> probs = getProbabilities(statuses);
+		System.out.println("Sending daily digest...");
 		processRatings(probs);
 	}
 	
@@ -58,7 +92,8 @@ public class TwitterLeadGenController {
 	 * @return true if it processed a new valid email, false otherwise
 	 */
 	public boolean checkMail() {
-		return false;
+		response.checkNewResponses();
+		return true;
 	}
 	
 	/**
@@ -72,6 +107,12 @@ public class TwitterLeadGenController {
 		int len = searchPhrases.length;
 		for (int i = 0; i < len; i++) {
 			tweets.addAll(portal.query(searchPhrases[i]));
+		}
+		len = tweets.size();
+		for (int i = len-1; i >= 0; i--) {
+			if (tweets.get(i).isRetweet()) {
+				tweets.remove(i);
+			}
 		}
 		
 		return tweets;
@@ -104,6 +145,26 @@ public class TwitterLeadGenController {
 	public void processRatings(ArrayList<StatusObject> probabilities) {
 		ratings.processWithRatings(probabilities);
 	}
-	
+
+	public static void printDate(Calendar currentTime) {
+		String day = "";
+		switch (currentTime.get(Calendar.DAY_OF_WEEK)) {
+		case 1: day = "Sunday"; break;
+		case 2: day = "Monday"; break;
+		case 3: day = "Tuesday"; break;
+		case 4: day = "Wednesday"; break;
+		case 5: day = "Thursday"; break;
+		case 6: day = "Friday"; break;
+		case 7: day = "Saturday";
+		}
+		
+		System.out.printf("%-9s %2d / %02d / %4d  %2d:%02d\n", day,
+											currentTime.get(Calendar.DATE),
+											currentTime.get(Calendar.MONTH),
+											currentTime.get(Calendar.YEAR),
+											currentTime.get(Calendar.HOUR_OF_DAY),
+											currentTime.get(Calendar.MINUTE));
+		
+	}
 	
 }

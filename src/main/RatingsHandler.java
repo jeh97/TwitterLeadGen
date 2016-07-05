@@ -83,11 +83,11 @@ public class RatingsHandler {
 			return -1;
 		}
 		
-		int id = db.getNewEmailID();
+		//int id = db.getNewEmailID();
 		
-		int index = db.addSentEmail(id, Calendar.getInstance().getTime());
+		int index = db.addSentEmail(Calendar.getInstance().getTime(),topStatusObjects.size());
 		
-		String[] message = getMessageText(topStatusObjects,index,id);
+		String[] message = getMessageText(topStatusObjects,index);
 		
 		manager.sendEmail(RECIPIENT, message[0], message[1]);
 		
@@ -101,7 +101,7 @@ public class RatingsHandler {
 	 * @param id Email ID
 	 * @return String of the message
 	 */
-	private String[] getMessageText(ArrayList<StatusObject> statusesToSend, int index, int id) {
+	private String[] getMessageText(ArrayList<StatusObject> statusesToSend, int index) {
 		Calendar currentTime = Calendar.getInstance();
 		String [] months = {"Jan","Feb","Mar","Apr","May","Jun",
 		                    "Jul","Aug","Sep","Oct","Nov","Dec"};
@@ -113,11 +113,9 @@ public class RatingsHandler {
 		subject = subject + String.format("%s, ",months[currentTime.get(Calendar.MONTH)]);
 		// year
 		subject = subject + String.format("%4d ",currentTime.get(Calendar.YEAR));
-		// ID
-		subject = subject + String.format("(%05d)", id);
 		
 		//get first line
-		String text = String.format("TwitterLeadGen: Daily digest #%03d (%05d)\n\n",index,id);
+		String text = String.format("TwitterLeadGen: Daily digest #%03d\n\n",index);
 		//get end lines
 		String endOfText = "Tweet IDs:\n";
 		//loop through statuses, adding them to successive entries
@@ -126,7 +124,7 @@ public class RatingsHandler {
 			Status tweet = statusesToSend.get(count).getStatus();
 			
 			text = text + String.format("%2d. %s\n\t\t-@%s\n\n", count+1,tweet.getText(),tweet.getUser().getScreenName());
-			endOfText = endOfText + String.format("%2d. %20d\n", count+1, tweet.getId());
+			endOfText = endOfText + String.format("%2d. <<%020d>>\n", count+1, tweet.getId());
 		}
 		
 		text = text + endOfText;
