@@ -127,6 +127,11 @@ public class DBManagerTest {
 		
 	}
 	
+	@Test
+	public void testHasTweetWithText() {
+		assertTrue(db.hasTweetWithText("fix your app @NewYorker -- and at the very least tweet us to tell us you're working on it. denied access to the new issue. #techwoes"));
+	}
+	
 	
 	
 	/*public static void main(String [] args) {

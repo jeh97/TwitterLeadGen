@@ -205,7 +205,7 @@ public class DBManager {
 		if (!hasWord(word)) return -1;
 		
 		// create sql statement string
-		String sql = String.format("UPDATE twitter_word_stats SET relevantCount = relevantCount+1, totalCount = totalCount + 1 WHEN word = %s", word);
+		String sql = String.format("UPDATE twitter_word_stats SET relevantCount = relevantCount+1, totalCount = totalCount + 1 WHEN word = '%s'", word);
 		
 		// execute sql
 		executeSql(sql);
@@ -225,7 +225,7 @@ public class DBManager {
 		if (!hasWord(word)) return -1;
 		
 		// create sql statement string
-		String sql = String.format("UPDATE twitter_word_stats SET irrelevantCount = irrelevantCount+1, totalCount = totalCount + 1 WHEN word = %s", word);
+		String sql = String.format("UPDATE twitter_word_stats SET irrelevantCount = irrelevantCount+1, totalCount = totalCount + 1 WHEN word = '%s'", word);
 		
 		// execute sql
 		executeSql(sql);
@@ -357,6 +357,44 @@ public class DBManager {
 	public boolean hasTweet(Long id) {
 		// Create sql statement
 		String sql = String.format("SELECT EXISTS(SELECT 1 FROM all_tweets WHERE id = %d);",id);
+		
+		// Declare connections, statement, and result set
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet set = null;
+		
+		//declare flag
+		boolean exists = false;
+		
+		try {
+			//Connect,create statement
+			conn = DriverManager.getConnection(DB_URL,USER,PASS);
+			stmt = conn.createStatement();
+			
+			set = stmt.executeQuery(sql);
+			
+			set.next();
+			
+			exists = set.getBoolean(1);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try { stmt.close();} catch (SQLException e) { e.printStackTrace();}
+			try { conn.close();} catch (SQLException e) { e.printStackTrace();}
+			try {  set.close();} catch (SQLException e) { e.printStackTrace();}	
+		}
+		
+		// return whether it exists or not
+		return exists;
+	}
+	
+	public boolean hasTweetWithText(String text) {
+		// make sure any single quotes in the status text are replaced with \'
+		text = text.replaceAll("['\"\\\\]","\\\\$0");
+		
+		// Create sql statement
+		String sql = String.format("SELECT EXISTS(SELECT 1 FROM all_tweets WHERE text = '%s');",text);
 		
 		// Declare connections, statement, and result set
 		Connection conn = null;
@@ -600,7 +638,7 @@ public class DBManager {
 	 */
 	public boolean emailResponseRecorded(int index) {
 		//check if id exists, if not, return false
-		if (emailIndexExists(index)) return false;
+		if (!emailIndexExists(index)) return false;
 		
 		//create statement
 		String sql = String.format("UPDATE send_emails SET hasResponse = 1 WHERE indexValue = %d", index);

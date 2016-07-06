@@ -9,8 +9,8 @@ import java.util.Calendar;
 
 public class RatingsHandler {
 	
-	public static final int DEFAULT_NUMBER_TO_SEND = 5;
-	public static final String RECIPIENT = "Jeh7497@gmail.com";
+	public static final int DEFAULT_NUMBER_TO_SEND = 10;
+	public static final String RECIPIENT = "Social@tapreason.com";
 	private static int NUMBER_TO_SEND = DEFAULT_NUMBER_TO_SEND;
 	private EmailManager manager;
 	private DBManager db;
@@ -63,7 +63,7 @@ public class RatingsHandler {
 		//go through statuses until NUMBER_TO_SEND have been collected
 		while (top.size()<NUMBER_TO_SEND && count < ratingsAndStatuses.size()) {
 			StatusObject current = ratingsAndStatuses.get(count);
-			if (!db.hasTweet(current.getStatus())) {
+			if (!db.hasTweet(current.getStatus()) && !db.hasTweetWithText(current.getStatus().getText())) {
 				top.add(current);
 				db.addTweet(current.getStatus());
 			}
@@ -122,8 +122,8 @@ public class RatingsHandler {
 		for (int count = 0; count < statusesToSend.size(); count++) {
 			Double prob = statusesToSend.get(count).getProbability();
 			Status tweet = statusesToSend.get(count).getStatus();
-			
-			text = text + String.format("%2d. %s\n\t\t-@%s\n\n", count+1,tweet.getText(),tweet.getUser().getScreenName());
+			String url = String.format("https://twitter.com/statuses/%d",statusesToSend.get(count).getStatus().getId());
+			text = text + String.format("%2d. %s\n\t\t-@%s\n\t\t%s\n\n", count+1,tweet.getText(),tweet.getUser().getScreenName(),url);
 			endOfText = endOfText + String.format("%2d. <<%020d>>\n", count+1, tweet.getId());
 		}
 		

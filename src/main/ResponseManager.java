@@ -56,7 +56,9 @@ public class ResponseManager {
 		Message[] messages = manager.getEmails();
 		
 		//process the unseen emails
-		processMessages(messages);
+		if (messages.length > 0) {
+			processMessages(messages);
+		}
 		
 		//close email folder
 		manager.closeFolders();
@@ -141,7 +143,7 @@ public class ResponseManager {
 			
 			//check that there is either an I or an R for each tweet it expects
 			for (int i = 0; i < numberOfTweets; i++) {
-				if(body.charAt(i*5+3) != 'I' && body.charAt(i*5+3) != 'R') {
+				if(body.charAt(i) != 'I' && body.charAt(i) != 'R' && body.charAt(i) != 'i' && body.charAt(i) != 'r') {
 					return false;
 				}
 			}
@@ -233,7 +235,7 @@ public class ResponseManager {
 			int numberOfTweets = db.getEmailNumberOfTweets(index);
 			
 			for (int i = 0; i < numberOfTweets; i++) {
-				if(body.charAt(i*5+3) == 'R') {
+				if(body.charAt(i) == 'R' || body.charAt(i) == 'r') {
 					info.add(Boolean.TRUE);
 				} else {
 					info.add(Boolean.FALSE);
@@ -281,8 +283,7 @@ public class ResponseManager {
 			e.printStackTrace();
 			return false;
 		}
-		
-		return false;
+		return true;
 	}
 	
 	/**
