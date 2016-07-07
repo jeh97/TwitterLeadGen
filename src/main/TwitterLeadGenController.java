@@ -50,8 +50,8 @@ public class TwitterLeadGenController {
 			
 			printDate(calendar);
 			
-			if (currDay != lastDay) {
-				System.out.printf("TwitterLeadGen has not been run today.\n");
+			if (currDay != lastDay && calendar.get(Calendar.HOUR_OF_DAY) >= 6) {
+				System.out.printf("TwitterLeadGen has not been run today, and it is not earlier than 6AM.\n");
 				lastDay = currDay;
 				try {
 					System.out.printf("Running TwitterLeadGenController\n");
@@ -62,9 +62,9 @@ public class TwitterLeadGenController {
 			} else {
 				System.out.printf("TwitterLeadGen has already been run today.\n");
 			}
-			System.out.println("Checking again in 12 hours\n\n");
+			System.out.println("Checking again in 3 hours\n\n");
 			try {
-				Thread.sleep(43200000);
+				Thread.sleep(10800000);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
