@@ -74,11 +74,12 @@ public class ResponseManager {
 	 */
 	public boolean isValidResponse(Message message) {
 		try {
+			/*
 			//check if it is being received from the right email
 			String address = ((InternetAddress)message.getFrom()[0]).getAddress();
 			if (!address.equals(RatingsHandler.RECIPIENT)) {
 				return false;
-			}
+			}*/
 			
 			//check if it has the right subject
 			String subject = message.getSubject();
