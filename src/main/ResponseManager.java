@@ -9,6 +9,7 @@ import util.Stemmer;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.TreeMap;
 
 import java.util.ArrayList;
 
@@ -295,21 +296,25 @@ public class ResponseManager {
 	 */
 	public boolean recordStats(String text, boolean relevant) {
 		try {
+			ArrayList<String> seenWords = new ArrayList<String>();
+			
 			String[] splitStrings = text.split("\\s+");
 			int len = splitStrings.length;
 			
 			for (int i = 0; i < len; i++) {
 				String stem = stemString(splitStrings[i]);
-				if (!db.hasWord(stem)) {
-					db.addWord(stem);
-				}
-				if (relevant) {
-					db.addRelevantInstance(stem);
-				} else {
-					db.addIrrelevantInstance(stem);
+				if (seenWords.indexOf(stem)==-1) {
+					seenWords.add(stem);
+					if (!db.hasWord(stem)) {
+						db.addWord(stem);
+					}
+					if (relevant) {
+						db.addRelevantInstance(stem);
+					} else {
+						db.addIrrelevantInstance(stem);
+					}
 				}
 			}
-			
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();

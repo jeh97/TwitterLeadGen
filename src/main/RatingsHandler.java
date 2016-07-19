@@ -86,7 +86,7 @@ public class RatingsHandler {
 		//int id = db.getNewEmailID();
 		
 		int index = db.addSentEmail(Calendar.getInstance().getTime(),topStatusObjects.size());
-		
+
 		String[] message = getMessageText(topStatusObjects,index);
 		
 		manager.sendEmail(RECIPIENT, message[0], message[1]);

@@ -205,7 +205,7 @@ public class DBManager {
 		if (!hasWord(word)) return -1;
 		
 		// create sql statement string
-		String sql = String.format("UPDATE twitter_word_stats SET relevantCount = relevantCount+1, totalCount = totalCount + 1 WHEN word = '%s'", word);
+		String sql = String.format("UPDATE twitter_word_stats SET relevantCount = relevantCount+1, totalCount = totalCount + 1 WHERE word = '%s'", word);
 		
 		// execute sql
 		executeSql(sql);
@@ -225,7 +225,7 @@ public class DBManager {
 		if (!hasWord(word)) return -1;
 		
 		// create sql statement string
-		String sql = String.format("UPDATE twitter_word_stats SET irrelevantCount = irrelevantCount+1, totalCount = totalCount + 1 WHEN word = '%s'", word);
+		String sql = String.format("UPDATE twitter_word_stats SET irrelevantCount = irrelevantCount+1, totalCount = totalCount + 1 WHERE word = '%s'", word);
 		
 		// execute sql
 		executeSql(sql);
