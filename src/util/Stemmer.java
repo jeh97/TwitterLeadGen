@@ -47,7 +47,7 @@ public class Stemmer {
 		AllWords = new HashMap<String,String>();
 		try {
 			JWNL.initialize(new FileInputStream
-					("/Users/admin/Documents/TwitterLeadGen/jwnl14-rc2/config/file_properties.xml"));
+					("./TwitterLeadGen/util/file_properties.xml"));
 					//("/Users/Jacob/Documents/Repositories/TwitterLeadGen/jwnl14-rc2/config/file_properties.xml"));
 			dic = Dictionary.getInstance();
 			morph = dic.getMorphologicalProcessor();

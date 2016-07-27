@@ -3,7 +3,8 @@ package main;
 import twitter4j.Status;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.TreeMap;
+import java.io.BufferedReader;
+import java.io.FileReader;
 
 public class TwitterLeadGenController {
 	private TwitterPortal portal;
@@ -11,7 +12,10 @@ public class TwitterLeadGenController {
 	private RatingsHandler ratings;
 	private ResponseManager response;
 	
-	private String[] searchPhrases = {"working new app", "new android app", "new ios app", "developing new app"};
+	private final String SEARCH_PHRASES_FILE = "./TwitterLeadGen/util/search_phrases.txt";
+	private final String USER_BLACKLIST_FILE = "./TwitterLeadGen/util/search_phrases.txt";
+	
+	
 	
 	private static TwitterLeadGenController instance;
 	
@@ -43,6 +47,7 @@ public class TwitterLeadGenController {
 		Calendar calendar = null;
 		int lastDay = -1;
 		int currDay = -1;
+		long nextCheck = -1;
 		
 		while (true) {
 			System.out.println();
@@ -53,11 +58,11 @@ public class TwitterLeadGenController {
 			System.out.printf("currDay = %d\n", currDay);
 			System.out.printf("lastDay = %d\n", lastDay);
 			
-			if (currDay != lastDay && calendar.get(Calendar.HOUR_OF_DAY) >= 6) {
-				System.out.printf("TwitterLeadGen has not been run today, and it is not earlier than 6AM.\n");
+			if (currDay != lastDay) {
+				System.out.printf("TwitterLeadGen has not been run today.");
 				lastDay = currDay;
+				System.out.println("Running TwitterLeadGen");
 				try {
-					System.out.printf("Running TwitterLeadGenController\n");
 					controller.run();
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -65,24 +70,15 @@ public class TwitterLeadGenController {
 			} else {
 				System.out.printf("TwitterLeadGen has already been run today.\n");
 			}
-			try {
-				System.out.println("Checking again in 3 hours\n\n");
-				long delay = 540000L;
-				System.out.println("|--------------------|");
-				System.out.print(  " ");
-				for (int i = 0; i < 12; i++) {
-					try {
-						Thread.sleep(delay);
-					} catch (Exception e) {
-						e.printStackTrace();
-						System.out.println();
-					}
-					System.out.print("*");
+			System.out.println("\nChecking again in 3 hours");
+			long delay = 10800000L;
+			nextCheck = System.currentTimeMillis()+delay;
+			while (System.currentTimeMillis() < nextCheck) {
+				try {
+					Thread.sleep(nextCheck - System.currentTimeMillis());
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-				System.out.println();
-				
-			} catch (Exception e) {
-				e.printStackTrace();
 			}
 		}
 	}
@@ -120,13 +116,33 @@ public class TwitterLeadGenController {
 	public ArrayList<Status> fetchStatuses() {
 		//go through each search phrase
 		ArrayList<Status> tweets = new ArrayList<Status>();
-		int len = searchPhrases.length;
-		for (int i = 0; i < len; i++) {
-			tweets.addAll(portal.query(searchPhrases[i]));
+		
+		try (BufferedReader br = new BufferedReader(new FileReader(SEARCH_PHRASES_FILE))) {
+			String line;
+			while ((line = br.readLine()) != null) {
+				tweets.addAll(portal.query(line.replaceAll(System.lineSeparator(), "")));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		len = tweets.size();
+		
+		String blacklist = "";
+		ArrayList<String> user_blacklist = new ArrayList<String>();
+		try (BufferedReader br = new BufferedReader(new FileReader(USER_BLACKLIST_FILE))) {
+			String line;
+			while ((line = br.readLine()) != null) {
+				blacklist += line;
+				user_blacklist.add(line.replaceAll(System.lineSeparator(), ""));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		int len = tweets.size();
 		for (int i = len-1; i >= 0; i--) {
 			if (tweets.get(i).isRetweet()) {
+				tweets.remove(i);
+			} else if (blacklist.indexOf(tweets.get(i).getUser().getScreenName().toLowerCase()) != -1) {
 				tweets.remove(i);
 			}
 		}

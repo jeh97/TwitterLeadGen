@@ -16,7 +16,7 @@ public class MessageObject {
 	public MessageObject(String subject, String text) {
 		this.subject = subject;
 		this.text = text;
-		this.index = -1;
+		this.index = (long) (-1);
 		this.numberOfTweets = -1;
 	}
 	

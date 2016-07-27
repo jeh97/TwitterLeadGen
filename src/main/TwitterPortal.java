@@ -48,6 +48,12 @@ public class TwitterPortal {
 		return instance;
 	}
 	
+	public static void main(String[] args) {
+		TwitterPortal twitter = TwitterPortal.getInstance();
+		System.out.println(twitter.getUser(217749838).getScreenName());
+		
+	}
+	
 	/**
 	 * Method to create an OAuth2Token.
 	 * @return An OAuth2Token.

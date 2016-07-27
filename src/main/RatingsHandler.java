@@ -10,7 +10,7 @@ import java.util.Calendar;
 public class RatingsHandler {
 	
 	public static final int DEFAULT_NUMBER_TO_SEND = 10;
-	public static final String RECIPIENT = "Social@tapreason.com";
+	public static final String RECIPIENT = "social@tapreason.com";
 	private static int NUMBER_TO_SEND = DEFAULT_NUMBER_TO_SEND;
 	private EmailManager manager;
 	private DBManager db;
